@@ -32,6 +32,12 @@ CACHE_PATH = CACHE_DIR / "media_cache.json"
 VISION_MODEL = os.environ.get("OCR_MODEL", "gpt-4o-mini")
 ASR_MODEL = os.environ.get("ASR_MODEL", "whisper-1")
 
+# Bump whenever OCR/ASR behavior changes (prompt, model, token limits,
+# image/audio normalization) so cache keys change too -- old entries become
+# unreachable instead of silently serving results computed under prior
+# behavior. No manual cache-entry deletion needed on future behavior changes.
+_CACHE_VERSION = 1
+
 OCR_PROMPT = (
     "This image was sent as a WhatsApp message. Transcribe any visible text "
     "verbatim (poster text, screenshot content, prices, dates, links), then "
@@ -75,11 +81,13 @@ def _save_cache() -> None:
 
 def _cached(cache_key: str, compute) -> dict:
     cache = _load_cache()
-    if cache_key in cache:
-        return cache[cache_key]
+    cached = cache.get(cache_key)
+    if cached is not None and not cached.get("error"):
+        return cached
     result = compute()
-    cache[cache_key] = result
-    _save_cache()
+    if not result.get("error"):
+        cache[cache_key] = result
+        _save_cache()
     return result
 
 
@@ -144,7 +152,7 @@ def ocr_image(image_id: str, images_df) -> dict:
         except Exception as e:
             return {"text": "", "error": str(e)}
 
-    return _cached(f"image:{image_id}", compute)
+    return _cached(f"image:v{_CACHE_VERSION}:{image_id}", compute)
 
 
 def _sniff_audio_ext(data: bytes, fallback_ext: str) -> str:
@@ -183,17 +191,7 @@ def asr_audio(voice_note_id: str, voice_notes_df) -> dict:
         except Exception as e:
             return {"text": "", "error": str(e)}
 
-    return _cached(f"voice:{voice_note_id}", compute)
-
-
-# Incremented on every media_error, so a systemic failure (e.g. a revoked
-# API key) can be surfaced as one loud count at the end of a batch run
-# instead of degrading silently into N identical per-item errors.
-_media_fail_count = 0
-
-
-def media_fail_count() -> int:
-    return _media_fail_count
+    return _cached(f"voice:v{_CACHE_VERSION}:{voice_note_id}", compute)
 
 
 def ground_message(message: dict, data: dict) -> dict:
@@ -201,9 +199,11 @@ def ground_message(message: dict, data: dict) -> dict:
 
     Returns {"media_text": str, "media_error": str|None}. media_error set
     means OCR/ASR failed or the media file was missing -- Stage 3/4 should
-    lower confidence rather than crash (FR-8, Phase 6 robustness).
+    lower confidence rather than crash (FR-8, Phase 6 robustness). Failure
+    counting is the caller's job (see spotcheck_phase2.py) so counts stay
+    scoped to whatever batch the caller is actually running, rather than
+    accumulating across unrelated calls in the same process.
     """
-    global _media_fail_count
     media_type = (message.get("media_type") or "").strip().lower()
     media_id = (message.get("media_id") or "").strip()
 
@@ -213,8 +213,5 @@ def ground_message(message: dict, data: dict) -> dict:
         result = asr_audio(media_id, data["voice_notes"])
     else:
         return {"media_text": "", "media_error": None}
-
-    if result["error"]:
-        _media_fail_count += 1
 
     return {"media_text": result["text"], "media_error": result["error"]}

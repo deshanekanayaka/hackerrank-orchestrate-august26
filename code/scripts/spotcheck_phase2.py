@@ -16,7 +16,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from pipeline.data import load_all
-from pipeline.media import ocr_image, asr_audio, ground_message, media_fail_count
+from pipeline.media import ocr_image, asr_audio, ground_message
 
 
 def spotcheck_images(data, n=3):
@@ -67,16 +67,21 @@ def full_media_grounding_run(data):
     """Stage 2 batch run: ground_message() over every media_type in
     (image, voice) row in messages.csv, then print one summary line --
     the failure-count signal a systemic outage (e.g. revoked API key)
-    should surface as, instead of N silent per-item errors."""
+    should surface as, instead of N silent per-item errors. Counted
+    locally over just this loop so earlier calls elsewhere in the script
+    (e.g. spotcheck_ground_message's 3 rows) can't leak into this total."""
     print("\n" + "=" * 90)
     print("FULL RUN: ground_message() over every messages.csv row with media")
     print("=" * 90)
     media_rows = [
         r for r in data["messages"].to_dict("records") if r.get("media_type") in ("image", "voice")
     ]
+    fail_count = 0
     for row in media_rows:
-        ground_message(row, data)
-    print(f"{media_fail_count()}/{len(media_rows)} media items failed")
+        grounding = ground_message(row, data)
+        if grounding["media_error"]:
+            fail_count += 1
+    print(f"{fail_count}/{len(media_rows)} media items failed")
 
 
 def check_missing_media_handling(data):

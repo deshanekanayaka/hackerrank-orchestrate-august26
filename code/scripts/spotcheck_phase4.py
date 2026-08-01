@@ -9,8 +9,10 @@ Covers the two tasks.md Phase 4 checkpoints:
   - fake-high-engagement scam sender still gets muted
   - hallucinated evidence id gets filtered
 plus a same-user-history evidence leak check, a real prior-report case,
-a real business-domain-mismatch case, and a false-positive regression
-check (a clean row must NOT get overridden).
+a real business-domain-mismatch case, a real promotion-opt-out case, a
+media-grounding-failure case (ground_message mocked -- no live API call),
+and a false-positive regression check (a clean row must NOT get
+overridden).
 
 Run: `python3 scripts/spotcheck_phase4.py` (from the code/ directory; no
 OPENAI_API_KEY needed).
@@ -18,6 +20,7 @@ OPENAI_API_KEY needed).
 
 import os
 import sys
+from unittest.mock import patch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -169,6 +172,56 @@ def run_evidence_leak_case(data):
     )
 
 
+def run_promotion_opt_out_case(data):
+    print("\n" + "=" * 90)
+    print("Real case: LLM classifies promotion, user already opted out")
+    print("=" * 90)
+    # u_007 opted out of promotions from business_094 (promotions_opted_out_at
+    # set in user_business_history.csv) -- business_094 is otherwise clean
+    # (verified, matching domain, no prior reports from u_007), so this
+    # isolates rule 3 (_promotion_opt_out) from the other two rules.
+    message = message_by_id(data, "msg_014")
+    decision = apply_safety_overrides(
+        message, generous_decision() | {"message_type": "promotion"}, data
+    )
+    check(
+        "forced to mute for an opted-out promotion",
+        decision["action"] == "mute",
+        f"got action={decision['action']}",
+    )
+    check(
+        f"confidence capped at <= {CONFIDENCE_CAP}",
+        decision["confidence"] <= CONFIDENCE_CAP,
+        f"got confidence={decision['confidence']}",
+    )
+
+
+def run_media_error_case(data):
+    print("\n" + "=" * 90)
+    print("Media grounding failed for this row -> confidence capped, no other change")
+    print("=" * 90)
+    # Patches pipeline.safety.ground_message (not media.ground_message) since
+    # that's the name apply_safety_overrides() actually looks up -- this also
+    # guarantees no real OCR/ASR API call happens here, regardless of API key.
+    message = message_by_id(data, "msg_023")
+    with patch(
+        "pipeline.safety.ground_message",
+        return_value={"media_text": "", "media_error": "simulated OCR failure"},
+    ) as mocked:
+        decision = apply_safety_overrides(message, generous_decision(), data)
+    check("ground_message was called (mocked, no live API call)", mocked.called)
+    check(
+        f"confidence capped at <= {CONFIDENCE_CAP} on media error",
+        decision["confidence"] <= CONFIDENCE_CAP,
+        f"got confidence={decision['confidence']}",
+    )
+    check(
+        "action untouched by a media error alone (not a safety-rule trigger)",
+        decision["action"] == "notify",
+        f"got action={decision['action']}",
+    )
+
+
 def run_no_false_positive_case(data):
     print("\n" + "=" * 90)
     print("Regression: a clean business message must NOT be overridden")
@@ -201,6 +254,8 @@ if __name__ == "__main__":
     run_fake_high_engagement_scam_case(dataset)
     run_hallucinated_evidence_case(dataset)
     run_evidence_leak_case(dataset)
+    run_promotion_opt_out_case(dataset)
+    run_media_error_case(dataset)
     run_no_false_positive_case(dataset)
 
     print("\n" + "=" * 90)

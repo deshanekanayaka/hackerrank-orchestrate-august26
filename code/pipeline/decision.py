@@ -6,8 +6,11 @@ are enum-constrained by the API itself -- the response literally cannot use
 a category outside the allowed set, so no shape-repair/parse-retry is
 needed. The only retry here is for transport-level failures (timeout,
 rate-limit, 5xx); if those are exhausted, decide() returns a clearly-
-flagged fallback row rather than raising, so one bad row never crashes a
-batch run (see decide_all()).
+flagged fallback row rather than raising, so one bad row (or one malformed
+message dict) never crashes a batch run (see decide_all()). The one
+exception is a missing OPENAI_API_KEY: that is a misconfiguration, not a
+per-row failure, and is left to propagate out of decide()/decide_all()
+so it fails fast and loud instead of being masked as N per-row fallbacks.
 
 evidence_message_ids returned here are the model's picks from the candidate
 list shown in the prompt (see format_context.py) -- Stage 3 only asks it to
@@ -103,13 +106,24 @@ def decide(message: dict, data: dict, max_retries: int = 2) -> dict:
     semicolon-separated string (or "none") happens at the output-writer
     boundary (Phase 5), not here, so Phase 4 can still filter the list.
     """
-    user_block = format_message_block(message, data)
-    system_prompt = _system_prompt(data)
+    try:
+        user_block = format_message_block(message, data)
+        system_prompt = _system_prompt(data)
+    except Exception as e:
+        # Deterministic formatting failure (e.g. a malformed row) -- retrying
+        # would hit the same error every time, so fall back immediately.
+        return _fallback_decision(str(e))
+
+    # Resolved once, outside the retry loop: a missing OPENAI_API_KEY is a
+    # misconfiguration, not a transient per-row failure. Let it propagate
+    # instead of being retried and silently swallowed into a fallback row
+    # for every message in the batch.
+    client = _get_client()
 
     last_error = None
     for attempt in range(max_retries + 1):
         try:
-            resp = _get_client().chat.completions.create(
+            resp = client.chat.completions.create(
                 model=DECISION_MODEL,
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -131,8 +145,10 @@ def decide_all(messages: list[dict], data: dict, max_workers: int = 6) -> dict:
     """Runs decide() concurrently across many message rows, keyed by message_id.
 
     5-8 worker range recommended: batch job over ~110 rows, no queue/backoff
-    infra needed at this scale (PRD non-goals). decide() never raises, so a
-    single row's failure can't take down the pool.
+    infra needed at this scale (PRD non-goals). decide() never raises for a
+    per-row/transient failure, so one bad row can't take down the pool -- but
+    a missing OPENAI_API_KEY propagates out of the first future.result() call
+    below, since that's a misconfiguration affecting every row, not one.
     """
     results = {}
     with ThreadPoolExecutor(max_workers=max_workers) as pool:

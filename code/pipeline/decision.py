@@ -99,7 +99,7 @@ def _fallback_decision(error: str) -> dict:
     }
 
 
-def decide(message: dict, data: dict, max_retries: int = 2) -> dict:
+def decide(message: dict, data: dict, max_retries: int = 4) -> dict:
     """Returns {action, message_type, reason, confidence, evidence_message_ids}.
 
     evidence_message_ids is a list[str] here; the CSV-format join into a
@@ -136,18 +136,31 @@ def decide(message: dict, data: dict, max_retries: int = 2) -> dict:
         except Exception as e:
             last_error = e
             if attempt < max_retries:
-                time.sleep(2**attempt)
+                # A 429 (TPM cap) needs longer than a transient-network-error
+                # backoff would: with several workers retrying in lockstep,
+                # a short 1-2s backoff lets them collide on the same limit
+                # again immediately (observed empirically: 19/110 rows in a
+                # real full run exhausted 2 retries at 1s/2s and fell back).
+                # Base it in seconds, not fractions, and cap it so a truly
+                # persistent failure still gives up within a few tries.
+                time.sleep(min(4 * (2**attempt), 30))
 
     return _fallback_decision(str(last_error))
 
 
-def decide_all(messages: list[dict], data: dict, max_workers: int = 6) -> dict:
+def decide_all(messages: list[dict], data: dict, max_workers: int = 4) -> dict:
     """Runs decide() concurrently across many message rows, keyed by message_id.
 
-    5-8 worker range recommended: batch job over ~110 rows, no queue/backoff
-    infra needed at this scale (PRD non-goals). decide() never raises for a
-    per-row/transient failure, so one bad row can't take down the pool -- but
-    a missing OPENAI_API_KEY propagates out of the first future.result() call
+    Lowered from the original 6 to 4 after a real full run over all 110
+    messages.csv rows showed 6 concurrent large prompts (system prompt +
+    few-shot + per-row context, some rows with 10 evidence candidates)
+    collectively exceeding the account's 200k TPM cap for gpt-4o-mini --
+    19/110 rows hit repeated 429s and fell back before the shorter backoff
+    that existed at the time could recover. No queue/backoff-at-scale infra
+    added (PRD non-goals) -- just a smaller worker pool plus the longer
+    per-attempt backoff in decide(). decide() never raises for a per-row/
+    transient failure, so one bad row can't take down the pool -- but a
+    missing OPENAI_API_KEY propagates out of the first future.result() call
     below, since that's a misconfiguration affecting every row, not one.
     """
     results = {}

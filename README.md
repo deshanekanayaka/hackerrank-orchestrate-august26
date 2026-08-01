@@ -14,6 +14,61 @@ Read [`problem_statement.md`](./problem_statement.md) for the full task spec, in
 
 ---
 
+## Architecture: it's a triage queue
+
+A stock WhatsApp client is already a queue — every message lands and gets pushed. That's a **FIFO, push-everything queue**, and it's exactly the failure mode above: treat every message the same and you either interrupt people constantly, or if you swing the other way and batch everything, you miss the one message that actually mattered (a scam, a direct mention in a muted group, a genuinely urgent work message).
+
+What this repo asks you to build is a **triage queue**: the same messages come in, but each one gets classified per-user before it's routed to one of three lanes.
+
+```mermaid
+flowchart TB
+    A["WhatsApp message stream"] --> B["Triage decision<br/><small>per-user, per-message judgment</small>"]
+    B --> C["Notify<br/><small>interrupt now</small>"]
+    B --> D["Digest<br/><small>show later</small>"]
+    B --> E["Mute<br/><small>suppress entirely</small>"]
+```
+
+Why not simpler alternatives?
+
+- **Push everything (FIFO)** — no concept of "this can wait", so the user gets interrupted constantly.
+- **Always batch (digest-only)** — loses real urgency, e.g. a direct mention in a muted group or a legitimate payment reminder from a trusted admin gets buried with everything else.
+
+So the triage decision has to happen per message, per user, using more than just the message text. That decision is computed by a five-stage pipeline:
+
+```mermaid
+flowchart TB
+    IN["messages.csv"] --> S1
+    CTX["users / groups / business / history csvs"] -.-> S1
+    S1["1. Context assembly<br/><small>join per-message context</small>"] --> S2
+    MEDIA["dataset/media/ files"] -.-> S2
+    S2["2. Media grounding<br/><small>OCR images, transcribe voice</small>"] --> S3
+    EVID["top-K retrieved evidence"] -.-> S3
+    S3["3. Decision engine<br/><small>LLM scores action + type</small>"] --> S4
+    S4["4. Safety override<br/><small>deterministic mute rules</small>"] --> S5
+    S5["5. Output writer<br/><small>writes output.csv</small>"] --> OUT["output.csv"]
+```
+
+Why each stage is load-bearing, working backward from what breaks without it:
+
+| Stage | Why it exists | What breaks if you skip it |
+|---|---|---|
+| **1. Context assembly** | Triage without personalization is just content classification. A sale poster can be useful to one user and noise to another — you can only tell by knowing *this* user's relationship to *this* sender/group/business (mute state, past engagement, opt-in/opt-out). | You end up building a generic spam filter, not a personalized router. |
+| **2. Media grounding** | The queue is multimodal — you can't triage what you can't read. Images and voice notes need OCR/ASR before they're reasoned about. | Every media message gets the same default treatment regardless of content (dangerous — a scam poster and a birthday poster look identical to a system that only sees `media_type: image`). |
+| **3. Decision engine** | This is the triage box itself — the one place sender relationship, history, and content actually get weighed together into notify / digest / mute. | Without it there's no decision at all — everything upstream is just data prep. |
+| **4. Safety override** | Triage mistakes aren't equal cost. Misrouting a birthday message is mildly annoying; misrouting a scam to `notify` (or a legitimate message to `mute` because of a false-positive scam signal) is a bad tradeoff to leave entirely to one probabilistic LLM pass. This layer is deterministic and can only tighten toward mute, never loosen — it's also where hallucinated `evidence_message_ids` get filtered against real history. | Safety-critical correctness depends entirely on the LLM getting it right on the first pass, every time. |
+| **5. Output writer** | A routing decision that isn't recorded isn't a decision — it has to land in `output.csv`, row per row, to be graded. | No way to reproduce or evaluate what the system decided. |
+
+Order matters too: context and media come first because you can't classify what you don't understand; safety runs *after* the decision because it's simpler to have one override layer inspect the final call than to duplicate safety logic across every reasoning branch.
+
+Companion docs for the full build plan (requirements, design rationale, hour-by-hour schedule, and a live task checklist):
+
+- `01-PRD.md` — requirements (FR-numbered), non-goals, success metrics, risks
+- `02-approach.md` — this architecture in more detail, alternatives rejected, revisit triggers
+- `03-delivery-plan.md` — hour-by-hour plan for the 24h window
+- `tasks.md` — live checklist to track progress across sessions
+
+---
+
 ## Repository Layout
 
 ```text
@@ -21,6 +76,10 @@ Read [`problem_statement.md`](./problem_statement.md) for the full task spec, in
 ├── AGENTS.md                         # Rules for AI coding tools + transcript logging
 ├── problem_statement.md              # Full challenge statement
 ├── README.md                         # You are here
+├── 01-PRD.md                         # Requirements
+├── 02-approach.md                    # Architecture / design rationale
+├── 03-delivery-plan.md               # 24h hour-by-hour plan
+├── tasks.md                          # Live task checklist
 └── dataset/
     ├── messages.csv                  # Messages to route
     ├── output.csv                    # Blank submission template

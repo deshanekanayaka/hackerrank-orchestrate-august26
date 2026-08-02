@@ -16,6 +16,8 @@ import base64
 import io
 import json
 import os
+import tempfile
+import threading
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -49,6 +51,12 @@ OCR_PROMPT = (
 _client = None
 _cache = None
 
+# ground_message() runs inside decide_all()'s ThreadPoolExecutor (decide() ->
+# format_message_block() -> ground_message()), so _cache and the cache file
+# are touched by several threads at once. Guards both the in-memory dict and
+# the file write below.
+_cache_lock = threading.Lock()
+
 
 def _get_client() -> OpenAI:
     global _client
@@ -75,19 +83,57 @@ def _load_cache() -> dict:
 
 
 def _save_cache() -> None:
+    """Atomically replace the cache file. Callers must hold _cache_lock.
+
+    The observed failure of the plain write_text(json.dumps(_cache)) this
+    replaces was lost updates, not corruption: each thread serializes its own
+    snapshot of the shared dict and then rewrites the whole file, so whichever
+    thread serialized earliest but wrote last wins, and every entry added
+    after its snapshot is silently dropped. Measured with 24 concurrent
+    writers against the pre-fix code: 1, 5, and 12 of 24 entries survived on
+    three runs (see scripts/spotcheck_phase8.py, which reproduces it).
+    Consequence is cost, not wrong output -- dropped entries just get
+    re-OCR'd/re-transcribed on the next run.
+
+    Two rarer modes are closed off by the same change: json.dumps() iterating
+    _cache while another thread inserts can raise "dictionary changed size
+    during iteration", and write_text() truncates before writing, so a large
+    enough payload can interleave into malformed JSON on disk. That one does
+    not self-heal -- _load_cache() raises on a malformed file on every later
+    run, with no recovery path -- which is why atomicity is worth having even
+    though lost updates are the mode that actually reproduces.
+    """
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    CACHE_PATH.write_text(json.dumps(_cache, indent=2, sort_keys=True))
+    payload = json.dumps(_cache, indent=2, sort_keys=True)
+    fd, tmp = tempfile.mkstemp(dir=CACHE_DIR, suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(payload)
+        os.replace(tmp, CACHE_PATH)
+    except Exception:
+        Path(tmp).unlink(missing_ok=True)
+        raise
 
 
 def _cached(cache_key: str, compute) -> dict:
-    cache = _load_cache()
-    cached = cache.get(cache_key)
+    with _cache_lock:
+        cached = _load_cache().get(cache_key)
     if cached is not None and not cached.get("error"):
         return cached
+
+    # compute() is an OCR/ASR API call (seconds long) and is deliberately
+    # OUTSIDE the lock, so media grounding stays concurrent under
+    # decide_all()'s pool. The tradeoff: two threads racing on the same
+    # uncached media_id both call the API and write the same result -- one
+    # duplicate call on a cold cache, versus serializing every media call in
+    # the batch behind one lock if it were held across compute(). Errors are
+    # still never cached (see the module docstring's retry note).
     result = compute()
+
     if not result.get("error"):
-        cache[cache_key] = result
-        _save_cache()
+        with _cache_lock:
+            _load_cache()[cache_key] = result
+            _save_cache()
     return result
 
 

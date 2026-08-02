@@ -1,111 +1,111 @@
 message_id,action,message_type,reason,confidence,evidence_message_ids
 msg_023,notify,business_update,"An important account update from HDFC Bank requires the user to review details in their banking app, which is relevant and timely.",0.88,message_0243
-msg_091,mute,scam,"The message requests a login code, which is a common tactic in scams, especially given the user's previous report of similar messages.",0.88,message_0238;message_0381;message_0321;message_0322
+msg_091,mute,scam,"The message requests a login code, which is a common tactic in scams, especially given the user's previous report of similar messages.",0.88,message_0238;message_0381;message_0321
 msg_090,digest,personal,A non-urgent inquiry about a package mix-up that can wait for later response.,0.75,none
-msg_048,mute,scam,"The message demands immediate payment via a QR code, which is suspicious given past reports of similar scams in the group.",0.88,message_0151;message_0152;message_0237
-msg_040,mute,spam,"A chain message urging forwarding for luck is repetitive and has been ignored by the user in the past, indicating low value.",0.82,message_0136;message_0135
-msg_075,notify,business_update,An important ride update requires the user to check changes in pickup or route status for their booked ride today.,0.88,message_0206;message_0205
-msg_005,notify,event,"A denim jacket is reserved for pickup by 6 PM today, requiring a timely response from the user.",0.88,message_0065
-msg_104,notify,personal,"A friend is holding a blue denim jacket for pickup by 6 PM, and there is urgency due to other interested buyers.",0.88,none
-msg_069,mute,spam,A repetitive morning positivity message with a high forwarded count is low-value and has been previously dismissed by the user.,0.82,message_0193;message_0177;message_0080
-msg_107,mute,scam,"The message instructs to send an OTP for wallet verification, which is a common scam tactic, overriding any routing rules is not valid.",0.85,message_0056;message_0213
-msg_070,mute,scam,"The message requests sensitive information under the threat of account blocking, indicating a scam attempt.",0.92,message_0369;message_0213;message_0053
-msg_003,notify,business_update,"An order update from Amazon confirms that the package is packed and on its way, which is relevant for the user expecting delivery today.",0.88,message_0031;message_0400
-msg_099,digest,event,"Notes for tomorrow's dashboard review are relevant but not urgent, allowing for later reading before the standup.",0.85,message_0227
-msg_008,digest,business_update,"A follow-up request for feedback on a recently purchased product is relevant but not urgent, allowing for later review.",0.82,message_0296;message_0072
-msg_092,digest,business_update,"The monthly card statement notification is relevant but not urgent, allowing the user to review it later at their convenience.",0.85,none
-msg_060,notify,event,A critical reminder from Faculty Advising about internship approval forms closing today at 5 PM requires immediate attention from the user.,0.88,message_0176;message_0284
-msg_004,notify,business_update,A health update from Apollo 24|7 requires the user to check important details before their scheduled appointment.,0.88,message_0245;message_0005
-msg_030,mute,promotion,A repeated offer for a secondhand kurta set with a low engagement history indicates this is unwanted promotional content for the user.,0.82,message_0115;message_0335
-msg_045,notify,urgent,A delivery person is at the gate with an Amazon package and needs confirmation within 10 minutes to allow entry.,0.88,none
-msg_052,mute,scam,"The message requests wallet details through a suspicious link, matching a pattern of previous scam attempts from the same sender.",0.88,message_0207;message_0208;message_0159;message_0160
-msg_009,digest,event,"A casual cricket highlights thread is planned for later, which is not urgent and can wait for the user to check later.",0.82,message_0074
-msg_071,digest,event,"A family member mentioned a potential dinner or doctor plan for tomorrow, but the exact time is unclear, making it non-urgent for now.",0.82,message_0197
-msg_016,mute,scam,"The message contains a safety risk by requesting urgent login verification and directing to a suspicious domain, matching patterns of previous scam attempts.",0.88,message_0024;message_0147
-msg_065,digest,promotion,"A limited shopping benefit related to recently viewed items is relevant but not urgent, allowing for later review.",0.85,message_0261;message_0260
-msg_038,mute,spam,"The message is a chain-forwarding request with urgency tactics, typical of spam, and the user has a history of dismissing similar content.",0.82,message_0131;message_0132
-msg_086,notify,business_update,"An important update about the airport pickup time has been communicated, which requires the user's attention before travel.",0.88,message_0222
+msg_048,mute,scam,"The message demands immediate payment via a QR code, echoing previous scam attempts that raised safety concerns.",0.88,message_0151;message_0152;message_0099;message_0100
+msg_040,mute,forward,"A chain message urging sharing for blessings is repetitive and unwanted, as indicated by the user's history of dismissals and group mute status.",0.82,message_0136;message_0135
+msg_075,notify,business_update,"An important ride update requires the user to check their pickup and route status in the app, as it has changed.",0.88,message_0206
+msg_005,notify,personal,A direct request to collect a denim jacket by 6 PM today is time-sensitive and relevant to the user.,0.88,message_0065
+msg_104,digest,personal,"A denim jacket pickup request is relevant but not urgent, allowing for later response.",0.75,message_0224;message_0050
+msg_069,mute,forward,A repetitive morning positivity message with a high forwarded count is unwanted and has been consistently dismissed by the user.,0.82,message_0193;message_0177;message_0080
+msg_107,mute,scam,"The message requests an OTP for wallet verification, which is a common scam tactic, and the sender's previous messages indicate a pattern of safety risks.",0.88,message_0056;message_0213;message_0045
+msg_070,mute,scam,"The message requests sensitive information under the guise of urgency, indicating a scam attempt, especially as it mirrors previous scam messages.",0.88,message_0369;message_0213;message_0056
+msg_003,notify,business_update,"An order update from Amazon confirms that the package is packed and expected to reach the local hub today, which is relevant for the user to track delivery.",0.88,message_0031;message_0400
+msg_099,digest,personal,"Notes for tomorrow's dashboard review are relevant but not urgent, allowing for later reading before the standup.",0.82,message_0227
+msg_008,digest,business_update,"A follow-up request for feedback on a recently purchased product is relevant but not urgent, allowing for later review.",0.85,message_0296;message_0072
+msg_092,digest,business_update,"A monthly card statement notification is relevant but not urgent, allowing the user to review it later at their convenience.",0.85,none
+msg_060,notify,event,A Faculty Advising reminder about internship approval forms closing today at 5 PM requires immediate attention from students.,0.88,message_0176;message_0284
+msg_004,notify,business_update,A health update from Apollo 24|7 requires the user to check important details in the app before their scheduled appointment.,0.88,message_0245;message_0005
+msg_030,mute,promotion,A repeated offer for a secondhand kurta set with no urgency is part of a pattern of ignored marketplace messages from this user.,0.82,message_0115;message_0335
+msg_045,notify,urgent,"A delivery person is at the gate needing immediate confirmation for an Amazon package, with a 10-minute deadline to respond.",0.88,none
+msg_052,mute,scam,"The message requests wallet details through a suspicious link, matching a pattern of previous scam attempts from this sender.",0.88,message_0207;message_0159;message_0160
+msg_009,digest,event,"A casual cricket highlights thread is planned for later, which is relevant but not urgent, allowing for later viewing.",0.82,message_0074
+msg_071,digest,event,"A tentative plan for a family gathering is mentioned, but lacks urgency and can be reviewed later.",0.75,message_0197
+msg_016,mute,scam,"The message contains a deceptive urgency to log in and verify account details, which is a common scam tactic.",0.88,message_0024;message_0147
+msg_065,digest,promotion,"A limited shopping benefit related to recently viewed items is relevant but not urgent, allowing for later review.",0.82,message_0261;message_0260
+msg_038,mute,forward,"The message is a chain-forwarding request with an urgency bait, typical of low-value forwards that the user has previously dismissed.",0.82,message_0131;message_0132
+msg_086,notify,business_update,"An important update about the airport pickup time has been communicated, which requires the user's attention before the scheduled time.",0.88,message_0222
 msg_014,mute,promotion,A first-order 50% discount code with an artificial expiry countdown is generic promotional bait the user has a pattern of ignoring.,0.81,message_0017;message_0018
-msg_094,mute,promotion,A generic 40% off beauty products offer lacks urgency and fits a pattern of ignored promotional messages from this business.,0.82,message_0212;message_0211
-msg_029,mute,promotion,A repeated offer for a secondhand kurta set with a final price is part of a pattern of similar low-value promotions that the user has dismissed before.,0.82,message_0095;message_0113
-msg_105,mute,spam,A forwarded health tip with a repetitive message pattern lacks credibility and has been previously dismissed by the user.,0.82,message_0233;message_0373
-msg_002,notify,urgent,"A direct mention requests a quick call about a refund edge case before a client meeting, indicating immediate importance.",0.88,message_0003
-msg_010,mute,spam,A generic feedback request from PVRINOX Cinemas is repetitive and the user has a history of dismissing similar messages.,0.82,message_0011;message_0242;message_0075
-msg_078,mute,scam,"The message requests sensitive bank details and instructs the user to send a screenshot, indicating a high risk of phishing or fraud.",0.92,message_0211;message_0212
-msg_013,digest,promotion,"A one-day discount on an imported recliner is relevant but lacks urgency, allowing for later review.",0.82,none
-msg_018,mute,spam,"A reward claim message with urgency and a high forwarded count suggests it's a generic spam attempt, which the user has previously dismissed.",0.82,message_0026;message_0092
-msg_044,mute,scam,"The message contains a safety risk by demanding an OTP verification through a link, which is a common scam tactic.",0.92,message_0143;message_0144
-msg_032,notify,urgent,"A fellow student urgently needs access to Prof. Chen's review slides due to a Wi-Fi issue during class, making this a relevant request for timely assistance.",0.88,message_0119
+msg_094,mute,promotion,"A generic 40% discount offer from a verified business is part of a pattern of ignored promotions, leading to a decision to mute.",0.82,message_0212;message_0211
+msg_029,mute,promotion,A repeated offer for a secondhand kurta set with a final price is part of a pattern of similar low-value promotions that the user has previously dismissed.,0.82,message_0113;message_0095;message_0332
+msg_105,mute,forward,"A forwarded health tip with a high forwarded count is generic and lacks personal relevance, indicating it may be low-value content.",0.82,message_0233;message_0373
+msg_002,notify,urgent,"A direct mention requests a quick call to clarify a refund issue before a client meeting, indicating urgency.",0.88,message_0003
+msg_010,digest,business_update,"A feedback request from PVRINOX Cinemas is relevant but not urgent, allowing it to be reviewed later.",0.82,message_0011;message_0075
+msg_078,mute,scam,"The message requests sensitive bank details and instructs the user to send a screenshot, indicating a high risk of fraud.",0.92,message_0211;message_0212
+msg_013,digest,promotion,"A one-day discount on an imported recliner is relevant but not urgent, allowing for later review.",0.75,none
+msg_018,mute,scam,"The message claims a reward but is likely a scam, as it follows a pattern of similar messages that have been reported and dismissed by the user.",0.88,message_0026;message_0092
+msg_044,mute,scam,"The message demands urgent action for OTP verification and includes a threat of account restriction, indicating a scam attempt.",0.92,message_0143;message_0144
+msg_032,notify,urgent,"A fellow student urgently needs review slides from Prof. Chen due to missing class notes, and the request is relevant to the group context.",0.88,message_0119
 msg_106,notify,event,A direct update about dance practice location and timing change requires immediate attention to avoid being locked out.,0.88,message_0234
-msg_006,notify,event,An admin reminder about maintenance payment deadlines and procedures is crucial for timely compliance.,0.88,message_0029;message_0044;message_0067
-msg_109,mute,urgent,"A trusted group admin issued a time-sensitive notice about clearing an access-card penalty before 6 PM, requiring immediate attention; safety override: this user has previously reported a message from this same sender.",0.3,message_0151
+msg_006,notify,event,An admin reminder about maintenance payment deadlines and procedures is crucial for timely compliance today.,0.88,message_0029;message_0044;message_0067
+msg_109,mute,payment,"The message requests payment via QR code for an access-card penalty, but previous similar messages have raised safety concerns and were dismissed by the user.",0.82,message_0151;message_0271
 msg_108,mute,scam,"The message requests confirmation of a PIN at a suspicious domain, indicating a high risk of phishing.",0.92,message_0094;message_0093;message_0236
-msg_019,mute,scam,"The message requests verification through a suspicious link and has a history of similar scam reports, indicating a safety risk.",0.92,message_0094;message_0093;message_0277
-msg_088,mute,spam,"The message is a repeated offer for a blue jacket, which the user has previously ignored, indicating a pattern of low value.",0.82,message_0224
+msg_019,mute,scam,"The message requests sensitive information via a suspicious link, indicating a high risk of phishing.",0.92,message_0094;message_0093;message_0277
+msg_088,mute,spam,"The message is a repeated offer for a blue jacket that the user has previously ignored, indicating low value and unwantedness.",0.82,message_0224
 msg_056,notify,urgent,A direct mention regarding a time-sensitive doctor appointment change requires confirmation from the user.,0.88,message_0168
-msg_027,digest,promotion,"A travel package to Ladakh is relevant to the user, but it lacks urgency and can be reviewed later.",0.82,message_0272;message_0033
+msg_027,mute,promotion,"A repetitive travel promotion for Ladakh with a generic offer and no urgency, which the user has previously dismissed multiple times.",0.82,message_0272;message_0033;message_0007
 msg_050,notify,business_update,A health-related update from Green Cross Pharmacy requires the user to check important details in the app before their scheduled time.,0.88,message_0279;message_0278
-msg_083,digest,business_update,"A request for comments on the onboarding document is relevant but not urgent, allowing for later review.",0.85,message_0219
-msg_063,mute,scam,"The message requests payment via a QR code and includes urgency, which are strong indicators of a scam, especially given the user's history with similar messages.",0.88,message_0182;message_0181;message_0365
-msg_033,digest,personal,"A casual family check-in message is friendly but not urgent, suitable for later viewing.",0.82,none
-msg_061,mute,spam,A forwarded message urging sharing blessings is repetitive and has a history of being ignored by the user.,0.82,message_0193;message_0080;message_0177
-msg_020,mute,scam,"The message contains a suspicious link and an urgent request for account verification, which aligns with known scam patterns.",0.88,message_0390
-msg_017,mute,scam,"The message requests immediate payment clearance with a threat of service interruption, which is a common scam tactic.",0.88,message_0090;message_0089
-msg_058,mute,spam,A forwarded health secret message with a high forward count is part of a repetitive pattern of low-value content that the user has previously dismissed.,0.82,message_0039;message_0040
-msg_026,mute,scam,"The message requests verification through a suspicious domain and includes a reattempt charge, indicating a potential scam pattern.",0.88,message_0032;message_0107;message_0108
-msg_047,notify,event,A maintenance update from the group admin about the lift being out of service at 4 PM today requires immediate attention for planning access.,0.88,message_0029
-msg_046,mute,scam,"The message requests an OTP under the guise of urgency, which is a common scam tactic, and contradicts previous warnings against sharing such information.",0.92,message_0148;message_0147;message_0024;message_0087
-msg_042,notify,urgent,A security alert from the group admin requires immediate action to prevent towing of vehicles blocking the driveway.,0.88,message_0140
-msg_079,mute,scam,"The message requests an OTP under urgency, indicating a scam attempt, as legitimate services never ask for such sensitive information directly.",0.92,message_0053;message_0369
-msg_098,notify,urgent,A direct request for a call regarding a time-sensitive clinic appointment decision requires immediate attention.,0.88,message_0168
-msg_037,notify,urgent,"A group admin urgently notified members to bring buckets as the water tank is arriving in 10 minutes, or they will have to wait until evening.",0.88,message_0129
-msg_007,digest,event,"The potluck registration update is relevant but not urgent, allowing the user to respond at their convenience before the deadline next Sunday.",0.82,none
-msg_085,mute,scam,"The message requests an OTP for account verification, which is a common scam tactic, especially from an unverified sender with multiple user reports.",0.92,message_0221;message_0214;message_0053
-msg_001,notify,urgent,A group admin urgently notified about a tanker leaving in 20 minutes and the need to fill drinking water due to an open motor room valve.,0.88,message_0057
-msg_021,notify,payment,"An urgent payment reminder from a trusted group admin requires action before 5 PM today, with a warning against potential scam links.",0.88,message_0029;message_0068
-msg_028,mute,promotion,"A travel promotion for Ladakh with a generic discount offer is part of a pattern the user has opted out of, indicating low engagement.",0.82,message_0034;message_0111
-msg_012,mute,spam,A forwarded health tip with a chain-message style and urgency to share is part of a pattern of low-value content the user has dismissed before.,0.82,message_0194;message_0247;message_0079
-msg_064,mute,scam,"The message requests verification of wallet and card details with a deadline, which aligns with previous scam patterns of asking for sensitive information.",0.88,message_0087;message_0183;message_0201
-msg_103,notify,personal,"A friend is holding a blue denim jacket for pickup by 6 PM, and there is urgency due to other interested parties.",0.88,message_0065
-msg_031,notify,urgent,"An admin is reminding the team about a critical 7 PM sync meeting, emphasizing the need for specific documents to avoid complications tomorrow.",0.88,message_0249
-msg_057,notify,urgent,"A direct mention requests immediate attention to a failing build, which is critical before updating the client thread.",0.88,message_0169
-msg_087,mute,promotion,"A generic real estate promotion with multiple dial options is repetitive and unwanted, as indicated by the user's history of dismissals and group mute status.",0.82,message_0391;message_0389;message_0204
-msg_067,notify,urgent,An admin reminder about maintenance payment due today by 5 PM to avoid late fees is critical for timely action.,0.88,message_0029;message_0067
-msg_039,notify,urgent,"A direct mention requests an urgent fee receipt to finalize the field-trip list, which is time-sensitive for the child's participation.",0.88,message_0051
-msg_082,notify,urgent,An urgent incident alert about spiking checkout errors requires immediate attention from the team.,0.92,message_0218
+msg_083,digest,event,"A request for comments on the onboarding document is relevant but not urgent, allowing for later review.",0.85,message_0219
+msg_063,mute,scam,"The message requests payment via a QR code and includes a threat of account lock, indicating a scam attempt based on previous similar reports.",0.88,message_0182;message_0181;message_0365
+msg_033,digest,personal,"A casual family message checking in on the receiver's safety, which is not urgent and can wait for later.",0.85,none
+msg_061,mute,forward,"A forwarded blessing message with a chain-forwarding request is repetitive and unwanted, matching a pattern of ignored content.",0.82,message_0193;message_0080;message_0177
+msg_020,mute,scam,"The message contains a suspicious link and an urgent request for account verification, which aligns with known scam patterns.",0.88,message_0095;message_0096
+msg_017,mute,scam,"The message demands immediate payment clearance with a threat of service interruption, indicating a potential scam.",0.88,message_0090;message_0089
+msg_058,mute,spam,A forwarded health secret message with a high forwarded count is typical spam content that the user has a history of ignoring.,0.82,message_0039;message_0040
+msg_026,mute,scam,"The message requests verification through a suspicious domain and includes a reattempt charge, indicating a potential scam.",0.88,message_0032;message_0107;message_0108
+msg_047,notify,event,A maintenance update about the lift being out of service at 4 PM today requires immediate attention for planning access.,0.88,message_0029
+msg_046,mute,scam,"The message requests an OTP under the guise of helping with verification, which is a common scam tactic. Previous warnings in the group reinforce this risk.",0.92,message_0148;message_0147;message_0024;message_0087
+msg_042,notify,urgent,A security alert requires immediate action to move cars blocking the main gate before it closes for repairs in 10 minutes.,0.3,none
+msg_079,mute,scam,"The message requests an OTP under the threat of account blocking, which is a common scam tactic to harvest sensitive information.",0.92,message_0053;message_0213;message_0369
+msg_098,notify,urgent,The sender urgently needs a decision about a clinic appointment and is asking for immediate contact to avoid making the choice alone.,0.88,message_0168
+msg_037,notify,urgent,A group admin urgently alerted members to collect water within 10 minutes to avoid missing the delivery.,0.88,message_0129
+msg_007,digest,event,"A potluck registration update is relevant but not urgent, allowing the user to respond at their convenience before the deadline next Sunday.",0.82,none
+msg_085,mute,scam,"The message requests an OTP for account verification, which is a common scam tactic, especially from an unverified sender with multiple user reports.",0.92,message_0221;message_0214;message_0213;message_0053
+msg_001,notify,urgent,A group admin urgently informed about the tanker leaving in 20 minutes and the need to fill drinking water due to an open valve.,0.88,message_0057
+msg_021,notify,payment,An urgent payment reminder from the group admin specifies a deadline and warns against using potentially unsafe payment links shared by residents.,0.88,message_0029
+msg_028,mute,promotion,"A travel promotion for Ladakh packages is generic marketing content that the user has opted out of receiving, showing a clear pattern of ignoring similar messages.",0.82,message_0034;message_0111
+msg_012,mute,forward,A forwarded health tip with a chain message format is repetitive and has been ignored by the user in the past.,0.82,message_0079;message_0247
+msg_064,mute,scam,"The message requests verification of wallet and card details with a deadline, resembling previous scam attempts that asked for sensitive information.",0.88,message_0087;message_0183;message_0201
+msg_103,notify,personal,"A friend is holding a denim jacket for pickup by 6 PM, and there is urgency due to other interested parties.",0.88,message_0065
+msg_031,notify,urgent,"An admin is reminding the team about a critical 7 PM sync meeting, requiring specific documents to avoid complications tomorrow.",0.88,message_0249
+msg_057,notify,urgent,"A direct mention requests immediate attention on a failing build, which is critical before updating the client thread.",0.88,message_0169
+msg_087,mute,spam,"The message is a generic real estate promotion with repetitive content that the user has previously dismissed, indicating low value.",0.82,message_0391;message_0389;message_0204
+msg_067,notify,urgent,An admin reminder about maintenance payment due today at 5 PM is critical for avoiding late fees.,0.88,message_0067;message_0029
+msg_039,notify,urgent,"A direct mention requests a fee receipt to finalize a child's participation in a field trip, with a deadline for submission today.",0.88,message_0051
+msg_082,notify,urgent,An urgent incident alert about spiking checkout errors requires immediate attention from team members to address payment failures.,0.92,message_0218
 msg_066,mute,promotion,A generic shopping offer reminder with no urgency is part of a pattern of ignored promotions from this retailer.,0.82,message_0402;message_0257
-msg_049,notify,event,"A scheduled return pickup from Shopee requires the user to prepare the item and share the pickup code, making it time-sensitive.",0.88,message_0154;message_0291
-msg_015,mute,scam,"The message requests an OTP to restore access, which is a common scam tactic, especially given the context of previous safety advisories about OTP requests.",0.88,message_0053;message_0045
-msg_051,mute,promotion,A generic shopping offer reminder with no urgency is part of a pattern of ignored promotions from Flipkart.,0.82,message_0257;message_0402
+msg_049,notify,business_update,A scheduled return pickup from Shopee requires the user to prepare the item and share the pickup code at the right time.,0.88,message_0291;message_0154
+msg_015,mute,scam,"The message requests an OTP to restore access, which is a common scam tactic, especially given the context of previous safety advisories against sharing OTPs.",0.88,message_0053;message_0045
+msg_051,mute,promotion,A repeated shopping offer reminder with no new content is generic promotional material that the user has opted out of receiving.,0.82,message_0257;message_0402
 msg_097,digest,personal,"The message indicates a non-urgent personal update about dinner and a request to talk later, making it suitable for later review.",0.85,message_0054
-msg_089,notify,urgent,A direct message from the pottery workshop about a forgotten item that needs to be picked up by 7 PM today.,0.88,none
-msg_053,digest,business_update,"Market commentary on Nvidia and TSMC with research links is relevant but not urgent, suitable for later review.",0.82,message_0411;message_0161
-msg_059,mute,scam,"The message requests sensitive account information under a false urgency, indicating a scam risk.",0.92,message_0213;message_0056;message_0045
-msg_024,mute,promotion,"A generic shopping offer reminder with no urgency is part of a pattern of ignored promotions from Flipkart, as the user has opted out of such messages.",0.82,message_0257;message_0402
-msg_072,mute,scam,"The message requests an OTP verification through a suspicious link, indicating a safety risk.",0.92,message_0053;message_0045
-msg_036,mute,scam,"The message requests sensitive verification through a link from a suspicious domain, consistent with previous scam attempts related to RazorpayX.",0.88,message_0283;message_0127;message_0128
-msg_076,mute,scam,"The message requests wallet details through a suspicious domain, matching a pattern of reported scams from this sender.",0.88,message_0207;message_0208;message_0159
-msg_055,notify,urgent,"A family member urgently needs a decision within ten minutes, making this a high-priority call-out.",0.88,message_0166
-msg_102,notify,urgent,An approved production rollback requires immediate attention to monitor the queue and failed jobs for the next 30 minutes.,0.88,message_0371
+msg_089,notify,urgent,A direct message from the pottery workshop about a forgotten item that needs immediate attention before 7 PM today.,0.88,none
+msg_053,digest,forward,"Market commentary on Nvidia and TSMC with research links is relevant but not urgent, suitable for later review.",0.82,message_0411;message_0161
+msg_059,mute,scam,"The message requests sensitive account information under the guise of a benefit claim, which is a common scam tactic.",0.92,message_0213;message_0056;message_0045
+msg_024,mute,promotion,"A repeated shopping offer reminder with no new content is part of a pattern the user has opted out of, indicating low engagement.",0.82,message_0257;message_0402
+msg_072,mute,scam,"The message requests an OTP verification through a suspicious link, indicating a scam attempt.",0.92,message_0053;message_0045
+msg_036,mute,scam,"The message requests sensitive verification through a link, which is a common scam tactic, especially given the sender's unverified status and previous reports of similar messages.",0.88,message_0283;message_0127;message_0128
+msg_076,mute,scam,"The message requests wallet details through a suspicious link, matching a pattern of previous scam attempts from the same sender.",0.88,message_0207;message_0208;message_0159;message_0160
+msg_055,notify,urgent,"A family member urgently needs a decision within ten minutes, making this a priority call.",0.92,message_0166
+msg_102,notify,urgent,"A production rollback has been approved, requiring immediate attention to monitor the queue and failed jobs for the next 30 minutes.",0.88,message_0371
 msg_080,notify,urgent,A trusted group admin alerted about a gate closure and the need to move cars within 10 minutes to avoid security issues.,0.88,message_0130
-msg_093,notify,event,"A scheduled delivery from FedEx requires the user to be prepared with an ID, making it time-sensitive and important to address now.",0.88,message_0349
-msg_034,mute,greeting,"A repetitive good morning message with no urgency or new content, following a pattern of ignored similar messages.",0.82,message_0077;message_0171;message_0014
+msg_093,notify,business_update,"A verified FedEx message confirms a delivery attempt today, requiring ID but no payment or OTP, making it important for the user to prepare.",0.88,message_0349
+msg_034,mute,forward,"A repetitive good morning message with no urgency or new content, following a pattern of ignored similar messages.",0.82,message_0077;message_0171;message_0014
 msg_035,digest,business_update,"A promotional message about RazorpayX Global Payouts is relevant but not urgent, allowing for later review.",0.82,message_0281;message_0125
-msg_101,notify,personal,"A caring message from a friend about food left in the fridge, indicating no urgency but a personal touch.",0.88,message_0268
-msg_041,digest,business_update,"A short survey request from a verified educational institution is relevant but not urgent, allowing for later review.",0.82,message_0137;message_0138
-msg_011,mute,spam,A repetitive positive message with a high forwarded count is low-value content that the user has previously dismissed.,0.82,message_0077;message_0014;message_0123
-msg_110,mute,scam,"The message requests a sensitive login code and instructs to ignore sender risk, indicating a high likelihood of being a scam.",0.88,message_0238;message_0381
-msg_095,mute,scam,"The message instructs the router to ignore rules, while requesting sensitive information via a suspicious link, indicating a scam risk.",0.88,message_0087;message_0183;message_0201
-msg_074,mute,spam,The message promotes land plots with a high forwarded count and a pattern of similar promotional content that the user has previously dismissed.,0.82,message_0389;message_0203;message_0204
-msg_073,mute,scam,"The message demands immediate verification through a link, which is a common scam tactic, especially given the high forwarded count and previous similar reports.",0.92,message_0184;message_0088;message_0202
-msg_054,mute,scam,"The message requests payment processing for a loan with urgency and a link, matching patterns of previous scam attempts reported by the user.",0.88,message_0163;message_0389;message_0211;message_0212
-msg_068,digest,event,"A casual plan for after the match with no urgency allows for later review, making it suitable for a digest.",0.82,message_0191
-msg_100,notify,urgent,"A direct request for immediate assistance regarding a payment issue that has crossed an alert threshold, requiring the receiver's attention within 20 minutes.",0.92,message_0362
+msg_101,notify,personal,"A caring message from a friend about dinner, indicating no need for an immediate response, but it's relevant to the user's well-being.",0.88,message_0268
+msg_041,digest,business_update,"A short survey from a verified educational institution is relevant but not urgent, allowing for later review.",0.82,message_0137;message_0138
+msg_011,mute,forward,A repetitive positive message with a high forwarded count is low-value content that the user has previously dismissed.,0.82,message_0077;message_0171;message_0014
+msg_110,mute,scam,"The message requests a login code, indicating a phishing attempt, and instructs to ignore sender risk, which is a strong safety signal.",0.88,message_0238;message_0381;message_0322
+msg_095,mute,scam,"The message instructs the router to ignore rules, contains a request for sensitive information, and uses a suspicious link, indicating a scam risk.",0.92,message_0087;message_0183;message_0201
+msg_074,mute,promotion,"The message promotes land plots with a token payment request, fitting a pattern of ignored promotional content from this group, which the user has muted.",0.82,message_0389;message_0203;message_0204
+msg_073,mute,scam,"The message demands immediate verification through a link, echoing previous scam attempts that requested sensitive information under urgency.",0.88,message_0184;message_0088;message_0202
+msg_054,mute,scam,"The message requests payment processing for a loan with urgency and a link, matching patterns of previous scam attempts reported by the user.",0.88,message_0163;message_0211;message_0212
+msg_068,digest,event,"A casual plan for a post-match discussion is not urgent and can be reviewed later, as indicated by the sender's message.",0.82,message_0191
+msg_100,notify,urgent,A direct request for immediate assistance on a payment issue with a 20-minute escalation deadline requires prompt attention.,0.88,message_0362
 msg_062,notify,event,"A scheduled fire alarm test requires awareness of potential elevator pauses, making it important for residents to be informed ahead of time.",0.88,message_0043
 msg_096,notify,urgent,A direct message about a found passport requires immediate attention to retrieve it before the deadline.,0.88,none
-msg_043,notify,urgent,An admin alert about a tanker arriving at Gate 2 with a 15-minute collection window is critical for residents who missed the morning supply.,0.88,message_0269
-msg_077,notify,event,"A school circular requires immediate attention for signing consent and packing lunch for tomorrow's field trip, with a deadline for the bus list closing this evening.",0.88,message_0051
-msg_081,notify,event,A school transport update requires parents to adjust pickup plans to Gate 2 by 3:40 PM today.,0.88,message_0217
-msg_025,notify,business_update,"An order update from Amazon confirms that the user's package is packed and on its way, which is relevant for tracking delivery.",0.88,message_0239;message_0004
-msg_084,mute,promotion,"An unsolicited offer for a credit card with cashback and discounts is a generic promotion that the user has opted out of, indicating a pattern of unwanted messages.",0.82,message_0220;message_0391
-msg_022,mute,scam,"The message requests payment via a link and screenshot, which raises safety concerns given the history of suspicious payment requests in this group.",0.82,message_0151;message_0271;message_0237
+msg_043,notify,urgent,An urgent message from the admin desk about the tanker arriving at Gate 2 and leaving in 15 minutes requires immediate attention for those who missed the morning supply.,0.88,message_0269
+msg_077,notify,event,"A school circular requires immediate attention for signing consent and packing lunch for tomorrow's field trip, with a bus list deadline this evening.",0.88,message_0051
+msg_081,notify,event,A school transport update requires the parent to adjust pickup plans to Gate 2 by 3:40 PM today.,0.88,message_0217
+msg_025,notify,business_update,"An order update from Amazon confirms that the user's package is packed and on its way, which is relevant and timely information.",0.88,message_0239;message_0004;message_0105
+msg_084,mute,promotion,"An unsolicited promotion for a credit card with cashback offers is generic and unwanted, matching the user's opt-out pattern for loan promotions.",0.82,message_0220;message_0391
+msg_022,mute,payment,"The message requests payment via a link and screenshot, which aligns with a pattern of suspicious payment requests from unverified sources in this group.",0.82,message_0151;message_0100;message_0271

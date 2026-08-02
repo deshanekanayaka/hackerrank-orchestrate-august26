@@ -1,39 +1,45 @@
-# HackerRank Orchestrate
+# Message Notification Router
 
-Starter repository for the **HackerRank Orchestrate** 24-hour hackathon.
+A personalized notification router for WhatsApp, built for the HackerRank
+Orchestrate 24-hour challenge.
 
-## Message Notification Router
+WhatsApp delivers family chats, society notices, school updates, co-worker
+messages, business promotions, image posters, voice notes, and scams into one
+undifferentiated stream. This system reads each incoming message together with
+the receiving user's history and relationships, and routes it to one of three
+lanes:
 
-Build an AI-powered system for WhatsApp that decides which messages deserve immediate attention, which should wait, and which should be muted.
+| Action | Meaning |
+|---|---|
+| `notify` | Interrupt the user now |
+| `digest` | Legitimate but not urgent; show later |
+| `mute` | Repetitive, unwanted, low-value, or unsafe |
 
-The system must reason over multimodal messages, including text messages, image posters/screenshots, and voice notes.
+The same message can be routed differently for different users. A sale poster
+is useful to someone who buys from that business and noise to someone who
+opted out of its promotions, and the decision depends on which user received
+it.
 
-WhatsApp is noisy. A user can receive family chats, society notices, school updates, co-worker messages, business account promotions, image posters, voice notes, and scams in the same message stream. Treating every message the same creates two bad outcomes: important messages get missed, and unwanted or risky messages interrupt the user.
+Input is `dataset/messages.csv` (110 messages: 87 text, 15 image, 8 voice).
+Output is `dataset/output.csv`, one prediction per message.
 
-Read [`problem_statement.md`](./problem_statement.md) for the full task spec, input/output schema, allowed values, and submission format.
+Full task specification: [`problem_statement.md`](./problem_statement.md).
+To run the solution: [`code/README.md`](./code/README.md).
 
 ---
 
-## Architecture: it's a triage queue
+## Design
 
-A stock WhatsApp client is already a queue — every message lands and gets pushed. That's a **FIFO, push-everything queue**, and it's exactly the failure mode above: treat every message the same and you either interrupt people constantly, or if you swing the other way and batch everything, you miss the one message that actually mattered (a scam, a direct mention in a muted group, a genuinely urgent work message).
+A stock client pushes every message as it arrives, which produces one of two
+failure modes. Push everything and the user is interrupted constantly. Batch
+everything and genuinely urgent messages are buried, such as a direct mention
+in a muted group or a payment reminder from a trusted admin. Neither can be
+fixed by ranking content alone, because the same content warrants different
+treatment for different recipients.
 
-What this repo asks you to build is a **triage queue**: the same messages come in, but each one gets classified per-user before it's routed to one of three lanes.
-
-```mermaid
-flowchart TB
-    A["WhatsApp message stream"] --> B["Triage decision<br/><small>per-user, per-message judgment</small>"]
-    B --> C["Notify<br/><small>interrupt now</small>"]
-    B --> D["Digest<br/><small>show later</small>"]
-    B --> E["Mute<br/><small>suppress entirely</small>"]
-```
-
-Why not simpler alternatives?
-
-- **Push everything (FIFO)** — no concept of "this can wait", so the user gets interrupted constantly.
-- **Always batch (digest-only)** — loses real urgency, e.g. a direct mention in a muted group or a legitimate payment reminder from a trusted admin gets buried with everything else.
-
-So the triage decision has to happen per message, per user, using more than just the message text. That decision is computed by a five-stage pipeline:
+The router therefore classifies per message and per user, using sender
+relationship, group membership and mute state, business verification status,
+opt-out flags, engagement history, and media content.
 
 ```mermaid
 flowchart TB
@@ -43,52 +49,117 @@ flowchart TB
     MEDIA["dataset/media/ files"] -.-> S2
     S2["2. Media grounding<br/><small>OCR images, transcribe voice</small>"] --> S3
     EVID["top-K retrieved evidence"] -.-> S3
-    S3["3. Decision engine<br/><small>LLM scores action + type</small>"] --> S4
+    S3["3. Decision engine<br/><small>LLM assigns action + type</small>"] --> S4
     S4["4. Safety override<br/><small>deterministic mute rules</small>"] --> S5
     S5["5. Output writer<br/><small>writes output.csv</small>"] --> OUT["output.csv"]
 ```
 
-Why each stage is load-bearing, working backward from what breaks without it:
+| Stage | Purpose |
+|---|---|
+| **1. Context assembly** | Joins each message to its receiver, group, and business context. Without this the system is a content classifier, not a personalized router. |
+| **2. Media grounding** | OCR for images, transcription for voice notes. A scam poster and a birthday poster are indistinguishable to a system that only sees `media_type: image`. |
+| **3. Decision engine** | Weighs relationship, history, and content into one routing decision. Uses strict JSON schema output, so `action` and `message_type` are constrained to valid values by the API. |
+| **4. Safety override** | Deterministic rules that can only tighten toward `mute` or lower confidence, never loosen. Also filters hallucinated `evidence_message_ids` against real history. |
+| **5. Output writer** | Writes `output.csv` in the required column and row order. |
 
-| Stage | Why it exists | What breaks if you skip it |
-|---|---|---|
-| **1. Context assembly** | Triage without personalization is just content classification. A sale poster can be useful to one user and noise to another — you can only tell by knowing *this* user's relationship to *this* sender/group/business (mute state, past engagement, opt-in/opt-out). | You end up building a generic spam filter, not a personalized router. |
-| **2. Media grounding** | The queue is multimodal — you can't triage what you can't read. Images and voice notes need OCR/ASR before they're reasoned about. | Every media message gets the same default treatment regardless of content (dangerous — a scam poster and a birthday poster look identical to a system that only sees `media_type: image`). |
-| **3. Decision engine** | This is the triage box itself — the one place sender relationship, history, and content actually get weighed together into notify / digest / mute. | Without it there's no decision at all — everything upstream is just data prep. |
-| **4. Safety override** | Triage mistakes aren't equal cost. Misrouting a birthday message is mildly annoying; misrouting a scam to `notify` (or a legitimate message to `mute` because of a false-positive scam signal) is a bad tradeoff to leave entirely to one probabilistic LLM pass. This layer is deterministic and can only tighten toward mute, never loosen — it's also where hallucinated `evidence_message_ids` get filtered against real history. | Safety-critical correctness depends entirely on the LLM getting it right on the first pass, every time. |
-| **5. Output writer** | A routing decision that isn't recorded isn't a decision — it has to land in `output.csv`, row per row, to be graded. | No way to reproduce or evaluate what the system decided. |
+Context and media grounding run first because the decision cannot be made
+without them. The safety layer runs after the model rather than inside it, so
+that safety-critical behavior is one auditable deterministic pass rather than
+a property the model has to get right on every call.
 
-Order matters too: context and media come first because you can't classify what you don't understand; safety runs *after* the decision because it's simpler to have one override layer inspect the final call than to duplicate safety logic across every reasoning branch.
-
-Companion docs for the full build plan (requirements, design rationale, hour-by-hour schedule, and a live task checklist):
-
-- `01-PRD.md` — requirements (FR-numbered), non-goals, success metrics, risks
-- `02-approach.md` — this architecture in more detail, alternatives rejected, revisit triggers
-- `03-delivery-plan.md` — hour-by-hour plan for the 24h window
-- `tasks.md` — live checklist to track progress across sessions
+The safety layer uses three rules, each requiring a field combination rather
+than a single signal: a prior report from this sender by this user; an
+unverified business sending from a domain that does not match its official
+one; and an explicit promotions opt-out on a message classified as a
+promotion. Rationale and the data audit behind each threshold are in
+[`docs/02-approach.md`](./docs/02-approach.md).
 
 ---
 
-## Repository Layout
+## Results
+
+Measured on the 30 solved rows in `dataset/sample_messages.csv`, and on the
+full 110-row run.
+
+| Metric | Result |
+|---|---|
+| Action accuracy | 90.0% |
+| Message type accuracy | 83.3% |
+| Evidence retrieval recall | 96.8% (30 of 31 expected IDs) |
+| Rows completed without fallback | 110 / 110 |
+| Rows with a distinct `reason` string | 110 / 110 |
+| Rows citing validated historical evidence | 102 / 110 |
+
+`gpt-4o-mini` at `temperature=0` is not perfectly deterministic under
+structured output, so repeat runs vary by a few points around these figures.
+
+### A note on distribution
+
+The full run routes 47.3% of messages to `mute`, against 33.3% in the solved
+sample set. That gap was investigated rather than tuned away, because a
+distribution mismatch is not by itself evidence of a defect.
+
+Two real classification defects were found and fixed. The `forward` category
+was never being used, so chain letters (`forwarded_count` of 7 to 11, "share
+with 10 people", "don't break the chain") were filing as `spam`. And a
+verified business sending its own feedback request was filing as `spam`
+rather than `business_update`. The underlying cause was that the prompt
+listed the eleven `message_type` values without defining them, leaving no
+boundary test between `promotion`, `spam`, `scam`, and `forward`. Adding
+those definitions moved `spam` from 11.8% to 2.7% against a ground truth of
+3.3%, and lifted message type accuracy from the 73–80% band to 83.3%.
+
+The remaining gap is `scam` at 25.5% against 13.3% in the sample. Manual
+review of all 28 rows so classified found every one to be a genuine scam:
+OTP harvesting, QR payment fraud, phishing domains, advance-fee loan fraud,
+fake refund requests, and four attempts to inject routing instructions into
+the message text. The conclusion is that `messages.csv` is genuinely
+scam-heavy and the 30-row sample is not distributionally representative of
+it. No further correction was made, since matching the sample distribution
+would mean misclassifying real scams.
+
+### Limitations
+
+**The evaluation basis is small.** All accuracy figures rest on 30 solved
+examples. Past a point, tuning against them fits noise rather than the task.
+One persistently misclassified sample row was left alone for this reason.
+
+**Model defaults are floating aliases.** `gpt-4o-mini` and `whisper-1` can be
+repointed by the provider, which would change behavior with no change to this
+code. Pinning dated snapshots is a one-line environment change and is
+recommended for any long-lived deployment.
+
+---
+
+## Repository layout
 
 ```text
 .
-├── AGENTS.md                         # Rules for AI coding tools + transcript logging
-├── problem_statement.md              # Full challenge statement
-├── README.md                         # You are here
-├── 01-PRD.md                         # Requirements
-├── 02-approach.md                    # Architecture / design rationale
-├── 03-delivery-plan.md               # 24h hour-by-hour plan
-├── tasks.md                          # Live task checklist
+├── README.md
+├── problem_statement.md              # Full challenge specification
+├── AGENTS.md                         # Conventions + transcript logging for AI coding tools
+├── code/
+│   ├── README.md                     # Setup, environment variables, run instructions
+│   ├── requirements.txt
+│   ├── main.py                       # Entry point
+│   ├── pipeline/                     # The five stages above
+│   ├── scripts/                      # Per-phase validation scripts
+│   └── cache/                        # Committed OCR/ASR results, keyed by media_id
+├── docs/
+│   ├── 01-PRD.md                     # Requirements, non-goals, success metrics, risks
+│   ├── 02-approach.md                # Design rationale, alternatives considered
+│   ├── 03-delivery-plan.md           # Hour-by-hour plan for the 24h window
+│   ├── tasks.md                      # Build log and running checklist
+│   └── production-considerations.md  # Extending, deploying, scaling, failure modes
 └── dataset/
     ├── messages.csv                  # Messages to route
-    ├── output.csv                    # Blank submission template
-    ├── sample_messages.csv           # Solved examples
+    ├── output.csv                    # Predictions produced by this system
+    ├── sample_messages.csv           # Solved examples used for evaluation
     ├── users.csv                     # User notification behavior
     ├── groups.csv                    # Group metadata
     ├── group_members.csv             # User-group relationships
     ├── business_accounts.csv         # Business sender metadata
-    ├── user_business_history.csv     # User-business history
+    ├── user_business_history.csv     # User-business relationship history
     ├── message_history.csv           # Historical messages
     ├── message_events.csv            # User reactions to historical messages
     ├── images.csv                    # Image IDs and media file paths
@@ -101,89 +172,42 @@ Companion docs for the full build plan (requirements, design rationale, hour-by-
 
 ---
 
-## What You Need to Build
+## Output format
 
-For every row in `dataset/messages.csv`, produce one row in `output.csv` with:
+One row per `message_id` in `dataset/messages.csv`:
 
-| Column | Meaning |
+| Column | Contents |
 |---|---|
 | `message_id` | Incoming message ID |
-| `action` | One of `notify`, `digest`, or `mute` |
-| `message_type` | Best-fit message category |
-| `reason` | Short human-readable explanation |
-| `confidence` | Number from `0` to `1` |
-| `evidence_message_ids` | Historical message IDs used as evidence; write `none` if there is no useful evidence |
+| `action` | `notify`, `digest`, or `mute` |
+| `message_type` | Best-fit category (`personal`, `urgent`, `event`, `payment`, `business_update`, `promotion`, `greeting`, `forward`, `spam`, `scam`, `unknown`) |
+| `reason` | Short explanation naming the specific signal and subject |
+| `confidence` | Float in `[0, 1]` |
+| `evidence_message_ids` | Semicolon-separated historical IDs, or `none` |
 
-Your system should make personalized decisions using the provided message, user, group, business, media, and historical interaction data.
-For image and voice-note messages, `images.csv` and `voice_notes.csv` only provide file paths; your system should inspect the media files themselves.
-
----
-
-## Suggested Workflow
-
-1. Inspect `dataset/sample_messages.csv` to understand the expected output format.
-2. Load `dataset/messages.csv` and all relevant context files.
-3. Build your routing system using any approach: LLMs, retrieval, rules, classifiers, agents, or hybrids.
-4. Write predictions to `output.csv`.
-5. Evaluate your approach on the solved sample rows before submitting.
-
-You may use any language or runtime. Python, JavaScript, and TypeScript are all reasonable choices.
+Structural validity is enforced by `code/scripts/spotcheck_phase8.py`, which
+checks row count, column order, blank fields, confidence range, and that every
+cited evidence ID resolves to a real historical message belonging to that
+row's user.
 
 ---
 
-## Requirements
+## Verification
 
-Your solution must:
+Each build phase has a standalone validation script under `code/scripts/`.
+Several are fully deterministic and need no API key. See
+[`code/README.md`](./code/README.md) for what each covers and how to run them.
 
-- be runnable from the terminal
-- read the provided files from `dataset/`
-- produce a valid `output.csv`
-- include one prediction for every `message_id` in `dataset/messages.csv`
-- not use organizer-only files or hardcoded labels
-
-If you use API keys or secrets, read them from environment variables. Never hardcode secrets in the repo.
+The solution reads only the participant-facing files in `dataset/`, uses no
+organizer-only data or hardcoded labels, and reads all credentials from
+environment variables.
 
 ---
 
-## Evaluation
+## Submission artifacts
 
-Your `output.csv` will be compared against hidden ground-truth labels.
-
-The scoring will consider:
-
-- correctness of `action`
-- correctness of `message_type`
-- usefulness and consistency of `reason`
-- whether `evidence_message_ids` point to relevant historical messages
-- reasonable confidence calibration
-
-Strong systems will combine retrieval, structured metadata, behavioral history, safety checks, OCR/ASR handling, and contextual reasoning.
-
----
-
-## Chat Transcript Logging
-
-This repo includes an [`AGENTS.md`](./AGENTS.md) file for AI coding tools. It asks compatible tools to append conversation summaries to:
-
-| Platform | Path |
-|---|---|
-| macOS / Linux | `$HOME/hackerrank_orchestrate_august26/log.txt` |
-| Windows | `%USERPROFILE%\hackerrank_orchestrate_august26\log.txt` |
-
-Upload this log as your chat transcript at submission time. Do not paste secrets into the chat.
-
----
-
-## Submission
-
-Submit the following files as instructed by HackerRank:
-
-1. **Code zip**: full runnable solution, prompts/configs, README, and any evaluation files.
-2. **Predictions CSV**: final `output.csv` for all rows in `dataset/messages.csv`.
-3. **Chat transcript**: the `log.txt` described above.
-
-Before submitting, confirm:
-
-- `output.csv` has one row per row in `dataset/messages.csv`.
-- `output.csv` has the exact required columns in the exact required order.
-- Your runnable code and setup instructions are included in `code.zip`.
+1. `code.zip` — runnable solution, prompts, configuration, READMEs, validation scripts
+2. `dataset/output.csv` — predictions for all 110 messages
+3. `log.txt` — session transcript, written to `$HOME/hackerrank_orchestrate_august26/log.txt`
+   (`%USERPROFILE%\hackerrank_orchestrate_august26\log.txt` on Windows) per
+   [`AGENTS.md`](./AGENTS.md)

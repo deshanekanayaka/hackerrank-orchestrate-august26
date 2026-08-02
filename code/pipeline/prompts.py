@@ -74,6 +74,15 @@ Rules (do not deviate):
     that is not actually present in the receiver/group/business data shown
     for this message. If a relevant counter/flag is 0 or absent, it is not
     evidence of a negative pattern.
+11. Weigh the "Forwarded count" field as a signal, not a verdict. A count of
+    0 or 1 is not meaningful on its own. A high forwarded count (chain-
+    message territory) makes generic, templated, or urgency-bait content
+    more likely to be a low-value forward or spam, and should push toward
+    `digest`/`mute` and the `forward`/`spam` message types when combined
+    with other weak signals -- but a high forwarded count alone never
+    overrides a message that is otherwise clearly personal, urgent, or
+    legitimate (e.g. a widely-forwarded genuine emergency alert can still
+    be `notify`).
 """
 
 FEW_SHOT_IDS = [

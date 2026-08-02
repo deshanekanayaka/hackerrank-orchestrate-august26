@@ -1,0 +1,10 @@
+# Python 3.11+ (developed and validated on 3.11.7).
+# Lower bounds, not exact pins: these are the versions the pipeline was built
+# and run against, and nothing here depends on version-specific behavior.
+# scripts/spotcheck_phase8.py asserts this file covers every third-party
+# import under code/, so a new dependency can't silently miss this list.
+
+pandas>=2.3.3
+openai>=2.48.0
+pillow>=12.1.0
+python-dotenv>=1.2.2

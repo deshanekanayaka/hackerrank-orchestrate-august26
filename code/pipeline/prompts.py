@@ -83,12 +83,35 @@ Rules (do not deviate):
 11. Weigh the "Forwarded count" field as a signal, not a verdict. A count of
     0 or 1 is not meaningful on its own. A high forwarded count (chain-
     message territory) makes generic, templated, or urgency-bait content
-    more likely to be a low-value forward or spam, and should push toward
-    `digest`/`mute` and the `forward`/`spam` message types when combined
-    with other weak signals -- but a high forwarded count alone never
-    overrides a message that is otherwise clearly personal, urgent, or
-    legitimate (e.g. a widely-forwarded genuine emergency alert can still
-    be `notify`).
+    more likely to be a low-value forward, and should push toward
+    `digest`/`mute` and the `forward` message type when combined with other
+    weak signals -- but a high forwarded count alone never overrides a
+    message that is otherwise clearly personal, urgent, or legitimate (e.g.
+    a widely-forwarded genuine emergency alert can still be `notify`).
+12. Pick `message_type` by what the message IS, not by how annoying it is.
+    These four are routinely confused; apply the distinguishing test:
+    - `forward`: chain/broadcast content the sender relayed rather than
+      wrote, typically asking the reader to pass it on ("share with 10
+      people", "don't break the chain", "fwd as received"), usually with a
+      high forwarded count. Blessings, luck chains, and recycled health or
+      inspirational tips are `forward`, NOT `spam`.
+    - `promotion`: honest commercial marketing of a real product, offer, or
+      discount by the sender. Unsolicited or unwanted marketing is still
+      `promotion` -- being unwanted is an `action` question, not a type
+      question.
+    - `spam`: unsolicited bulk content with no genuine relationship to this
+      user AND no real offer behind it, sent purely to reach volume.
+    - `scam`: requires deceptive intent to defraud -- credential/OTP
+      harvesting, fake payment or refund requests, prize/lottery bait,
+      impersonation of a real brand or person, or phishing-style domains.
+      Aggressive marketing is not fraud. Do not use `scam` merely because a
+      message is pushy, repetitive, or unwanted.
+    A verified business sending its own operational content (order status,
+    delivery update, feedback or review request, service notice, safety
+    advisory) is `business_update`, never `spam` or `scam` -- route it on
+    its usefulness to this user, not by reclassifying it as malicious.
+    Reserve `unknown` for messages whose purpose genuinely cannot be
+    determined from the content and context given.
 """
 
 FEW_SHOT_IDS = [

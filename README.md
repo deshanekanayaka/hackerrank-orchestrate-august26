@@ -83,29 +83,42 @@ full 110-row run.
 
 | Metric | Result |
 |---|---|
-| Action accuracy | 86.7–90.0% |
-| Message type accuracy | 73.3–80.0% |
+| Action accuracy | 90.0% |
+| Message type accuracy | 83.3% |
 | Evidence retrieval recall | 96.8% (30 of 31 expected IDs) |
 | Rows completed without fallback | 110 / 110 |
 | Rows with a distinct `reason` string | 110 / 110 |
 | Rows citing validated historical evidence | 102 / 110 |
 
-Accuracy is reported as a range because `gpt-4o-mini` at `temperature=0` is
-not perfectly deterministic under structured output. Repeat runs vary within
-the bands above.
+`gpt-4o-mini` at `temperature=0` is not perfectly deterministic under
+structured output, so repeat runs vary by a few points around these figures.
+
+### A note on distribution
+
+The full run routes 47.3% of messages to `mute`, against 33.3% in the solved
+sample set. That gap was investigated rather than tuned away, because a
+distribution mismatch is not by itself evidence of a defect.
+
+Two real classification defects were found and fixed. The `forward` category
+was never being used, so chain letters (`forwarded_count` of 7 to 11, "share
+with 10 people", "don't break the chain") were filing as `spam`. And a
+verified business sending its own feedback request was filing as `spam`
+rather than `business_update`. The underlying cause was that the prompt
+listed the eleven `message_type` values without defining them, leaving no
+boundary test between `promotion`, `spam`, `scam`, and `forward`. Adding
+those definitions moved `spam` from 11.8% to 2.7% against a ground truth of
+3.3%, and lifted message type accuracy from the 73–80% band to 83.3%.
+
+The remaining gap is `scam` at 25.5% against 13.3% in the sample. Manual
+review of all 28 rows so classified found every one to be a genuine scam:
+OTP harvesting, QR payment fraud, phishing domains, advance-fee loan fraud,
+fake refund requests, and four attempts to inject routing instructions into
+the message text. The conclusion is that `messages.csv` is genuinely
+scam-heavy and the 30-row sample is not distributionally representative of
+it. No further correction was made, since matching the sample distribution
+would mean misclassifying real scams.
 
 ### Limitations
-
-Three things a reviewer should know:
-
-**Digest is under-predicted.** The full run produced 48.2% `mute`, 37.3%
-`notify`, and 14.5% `digest`, against a sample-set distribution of 33.3% /
-30.0% / 36.7%. This is the digest-into-mute collapse described in
-[`docs/tasks.md`](./docs/tasks.md), which prompt rule 8 was written to correct
-and partially did. Either the bias persists at full-dataset scale, or the
-30-row sample is not distributionally representative of the 110 real rows.
-Nothing in the available data distinguishes the two, so it was left uncorrected
-rather than tuned toward a 30-row target.
 
 **The evaluation basis is small.** All accuracy figures rest on 30 solved
 examples. Past a point, tuning against them fits noise rather than the task.

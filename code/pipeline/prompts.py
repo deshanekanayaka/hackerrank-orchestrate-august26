@@ -48,7 +48,13 @@ Rules (do not deviate):
    an empty list if nothing in the candidate list is genuinely relevant.
 6. `reason` must be short, specific, and name the actual signal used
    (sender relationship, repetition pattern, media content, safety flag) --
-   never a generic template restated across rows.
+   never a generic template restated across rows. Always also name the
+   concrete subject of THIS message (what it is actually about -- the
+   specific item, event, request, or topic), not just the abstract category
+   of signal. Two different messages that trigger the same rule (e.g. two
+   "urgent group admin" messages) must still produce two visibly different
+   `reason` strings, because each names what its own message is actually
+   about.
 7. Calibrate `confidence`: lower it when signals conflict, media inspection
    failed or looks noisy, or context is thin; raise it when multiple
    independent signals agree.
@@ -96,17 +102,51 @@ FEW_SHOT_IDS = [
 FEW_SHOT_PREAMBLE = (
     "The following examples calibrate tone, style, and format only. Do not "
     "match new messages to these examples by content or topic -- only reuse "
-    "the kind of reasoning and the reason/confidence style they demonstrate."
+    "the kind of reasoning and the reason/confidence style they demonstrate. "
+    "Do not reuse the exact wording of any example's `reason` -- write a new "
+    "one grounded in the specific message you are deciding."
 )
+
+# sample_messages.csv's own `reason` text for several few-shot rows reads as
+# a generic template ("A trusted group admin sent a time-sensitive update
+# that should interrupt the user.", "The user has opted out of or repeatedly
+# dismissed similar marketing messages.", "A school admin sent a same-day
+# operational update that the user is likely to need immediately.") and was
+# observed being learned as a copyable phrase, then repeated near-verbatim
+# across unrelated real messages in output.csv (see docs/tasks.md Phase 7
+# notes -- e.g. msg_037/msg_080 got the identical group-admin reason despite
+# one being about a water tanker and the other a car blocking a gate).
+# Rewritten here, for the few-shot demo only, to model content-grounded
+# phrasing instead. The source CSV is left untouched; this override affects
+# prompt construction only.
+FEW_SHOT_REASON_OVERRIDES = {
+    "sample_msg_001": (
+        "A trusted group admin flagged an open motor-room valve and a "
+        "20-minute window to fill drinking water before the tanker leaves."
+    ),
+    "sample_msg_012": (
+        "A secondhand cycle helmet for sale is mildly relevant to the user "
+        "but has no deadline, so it can wait for later browsing."
+    ),
+    "sample_msg_015": (
+        "A first-order 50% discount code with an artificial expiry countdown "
+        "is generic promotional bait the user has a pattern of ignoring."
+    ),
+    "sample_msg_046": (
+        "A school circular needs the parent to check a specific timing "
+        "change and sign a consent note before the same day."
+    ),
+}
 
 
 def _expected_json(row: dict) -> str:
     raw_ids = (row.get("evidence_message_ids") or "").strip()
     ids = [] if raw_ids.lower() in ("", "none") else [x.strip() for x in raw_ids.split(";") if x.strip()]
+    reason = FEW_SHOT_REASON_OVERRIDES.get(row["message_id"], row["reason"])
     payload = {
         "action": row["action"],
         "message_type": row["message_type"],
-        "reason": row["reason"],
+        "reason": reason,
         "confidence": float(row["confidence"]),
         "evidence_message_ids": ids,
     }

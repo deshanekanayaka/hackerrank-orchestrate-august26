@@ -89,11 +89,16 @@ flowchart TB
 
 ### What changes, and what doesn't
 
-The reasoning core survives intact. `decide(message, data)` and
-`apply_safety_overrides(message, decision, data)` are already pure functions
-over a single message, so they move into a service without modification —
-the batch shape lives entirely in `run()`'s loop and CSV writer, neither of
-which is load-bearing.
+The reasoning core carries over, but `decide()` does not move unchanged.
+It bundles three concerns that a service has to hold apart: prompt
+construction, the model call, and the interpretation of failure. The first
+and third are pure; the middle does network I/O, sleeps in a retry loop, and
+resolves a module-global client. §2 sets out the split and the adapter
+contract it needs.
+
+`apply_safety_overrides(message, decision, data)` is the part that genuinely
+moves as-is. Its rules are deterministic reads over the message and context,
+it makes no model call of its own, and it should stay that way.
 
 Four things must change, and each is a section below:
 
@@ -176,11 +181,43 @@ recorded in `tasks.md`.
 [`main.py`](../code/main.py) is a batch job: load every CSV, iterate every row,
 write one file. Real delivery is a webhook per message.
 
-The refactor is smaller than it looks, because the per-message seam already
-exists. `decide(message, data)` and
-`apply_safety_overrides(message, decision, data)` are already pure functions
-over a single message. A service wraps those two calls; `run()`'s loop and CSV
-writer are the only batch-shaped parts, and neither is load-bearing.
+The per-message seam exists, but `decide()` cannot cross it as written. It
+conflates three concerns:
+
+1. **Prompt construction** — `format_message_block()` and
+   `build_system_prompt()`. Pure, given the message and its context.
+2. **The model call** — `client.chat.completions.create()`, wrapped in a
+   retry loop that blocks the worker with `time.sleep()` and resolves a
+   module-global client.
+3. **Failure interpretation** — an exhausted retry becomes a fabricated
+   `digest` decision at confidence 0.1
+   ([`decision.py:92`](../code/pipeline/decision.py#L92)).
+
+Concerns 1 and 3 belong in pure routing logic that can be unit-tested with no
+network. Concern 2 belongs behind a model-call adapter with an explicit
+contract, because each of these is currently implicit:
+
+| Property | Today | Adapter contract |
+|---|---|---|
+| **Timeout** | No timeout is passed to `create()`; it inherits the SDK default, which is far longer than any webhook budget | Per-attempt deadline set by the caller, plus a total budget across attempts, both well inside the delivery deadline |
+| **Retry policy** | In-process, up to 4 attempts, blocking sleeps up to 30s per attempt | Adapter attempts once and returns a typed result. Retries belong to the queue, where backoff does not hold a worker or a webhook connection open |
+| **Idempotency** | None. A replayed webhook re-calls the model and is billed again | Key on `(message_id, prompt_version, model_snapshot)`. Same key returns the stored decision rather than re-calling |
+| **Failure handling** | Any exception after retries becomes a routing decision that looks successful | Typed outcome: `Ok(decision)`, `Retryable(reason)`, or `Permanent(reason)`. Only `Ok` may reach delivery |
+
+The typed outcome is what makes the §4 fallback-row problem go away rather
+than move: a delivery failure stops being indistinguishable from a genuine
+`digest`, and the queue gets something it can act on.
+
+`apply_safety_overrides()` stays exactly as it is. It is deterministic, makes
+no model call, and can only tighten toward `mute` or lower confidence, so it
+remains the last thing to run before delivery on the `Ok` path. Its one
+implicit dependency is the `ground_message()` call at
+[`safety.py:169`](../code/pipeline/safety.py#L169), which is a cache read once
+the same message has been grounded upstream. Backing that cache with the
+shared store in §3 keeps it a read across replicas.
+
+`run()`'s loop and CSV writer are the only genuinely batch-shaped parts, and
+neither is load-bearing.
 
 The real work is `data`. `load_all()` reads twelve CSVs into memory and hands
 the whole bundle to every stage. In a service that becomes a database with
